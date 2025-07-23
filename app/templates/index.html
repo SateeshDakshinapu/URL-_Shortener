@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <h1>Shorten your URL</h1>
+    <form id="shortenForm">
+        <input type="text" id="url" placeholder="Enter URL" required>
+        <button type="submit">Shorten</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('shortenForm');
+        const input = document.getElementById('url');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const response = await fetch('/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: input.value }),
+            });
+
+            const data = await response.json();
+            if (response.ok && data.short_url) {
+                const shortCode = data.short_url.split('/').pop();
+                const fullShortURL = `${window.location.origin}/r/${shortCode}`;
+                const analyticsURL = `${window.location.origin}/analytics_page/${shortCode}`;
+
+                result.innerHTML = `
+                    <p><strong>Short URL:</strong> <a href="${fullShortURL}" target="_blank">${fullShortURL}</a></p>
+                    <p><strong>Analytics:</strong> <a href="${analyticsURL}" target="_blank">View Analytics</a></p>
+                `;
+            } else {
+                result.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

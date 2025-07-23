@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shortened URL</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% else %}
+        <h3>Short URL:</h3>
+        <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+    {% endif %}
+    <br><br>
+    <a href="/">Shorten another</a>
+</body>
+</html>

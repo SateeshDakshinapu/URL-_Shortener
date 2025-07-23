@@ -1,23 +1,19 @@
-from flask import Flask, request, redirect, jsonify
-import threading
-import string
-import random
+from flask import Flask, request, redirect, jsonify, render_template
+from pymongo import MongoClient
 import time
-from urllib.parse import urlparse
+from app.utils import validate_url, generate_short_code  # ⬅️ Imported here
 
 app = Flask(__name__)
 
-# In-memory stores
-url_store = {}
-click_stats = {}
-lock = threading.Lock()
+# MongoDB setup
+client = MongoClient("mongodb+srv://tiger:tigersateesh@cluster0.0ggj59e.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+db = client['url_shortener']
+url_collection = db['urls']
 
-# Helper function to generate short codes
-def generate_short_code(length=6):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choices(characters, k=length))
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Route to shorten a URL
 @app.route('/shorten', methods=['POST'])
 def shorten_url():
     data = request.get_json()
@@ -26,45 +22,52 @@ def shorten_url():
     if not original_url:
         return jsonify({'error': 'Missing URL'}), 400
 
-    parsed_url = urlparse(original_url)
-    if not parsed_url.scheme or not parsed_url.netloc:
+    if not validate_url(original_url):
         return jsonify({'error': 'Invalid URL format'}), 400
 
     short_code = generate_short_code()
     timestamp = int(time.time())
 
-    with lock:
-        url_store[short_code] = {
-            'original_url': original_url,
-            'created_at': timestamp,
-            'clicks': 0
-        }
-        click_stats[short_code] = []
+    url_collection.insert_one({
+        'short_code': short_code,
+        'original_url': original_url,
+        'created_at': timestamp,
+        'clicks': 0,
+        'access_timestamps': []
+    })
 
     return jsonify({'short_url': f'/r/{short_code}'}), 201
 
-# Route to redirect
-@app.route('/r/<short_code>', methods=['GET'])
+@app.route('/r/<short_code>')
 def redirect_url(short_code):
-    with lock:
-        url_data = url_store.get(short_code)
-        if not url_data:
-            return jsonify({'error': 'Short code not found'}), 404
-        url_data['clicks'] += 1
-        click_stats[short_code].append(int(time.time()))
-        return redirect(url_data['original_url'])
+    record = url_collection.find_one({'short_code': short_code})
+    if not record:
+        return jsonify({'error': 'Short code not found'}), 404
 
-# Route to get analytics
-@app.route('/analytics/<short_code>', methods=['GET'])
+    url_collection.update_one(
+        {'short_code': short_code},
+        {'$inc': {'clicks': 1}, '$push': {'access_timestamps': int(time.time())}}
+    )
+
+    return redirect(record['original_url'])
+
+@app.route('/analytics/<short_code>')
 def get_analytics(short_code):
-    with lock:
-        if short_code not in url_store:
-            return jsonify({'error': 'Short code not found'}), 404
-        data = url_store[short_code]
-        return jsonify({
-            'original_url': data['original_url'],
-            'clicks': data['clicks'],
-            'created_at': data['created_at'],
-            'access_timestamps': click_stats.get(short_code, [])
-        })
+    record = url_collection.find_one({'short_code': short_code})
+    if not record:
+        return jsonify({'error': 'Short code not found'}), 404
 
+    return jsonify({
+        'original_url': record['original_url'],
+        'clicks': record['clicks'],
+        'created_at': record['created_at'],
+        'access_timestamps': record.get('access_timestamps', [])
+    })
+
+# ✅ This route serves the HTML page that loads analytics visually
+@app.route('/analytics_page/<short_code>')
+def analytics_page(short_code):
+    return render_template('analytics.html', short_code=short_code)
+
+if __name__ == '__main__':
+    app.run(debug=True)
