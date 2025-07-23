@@ -3,29 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>URL Shortener</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Shorten your URL</h1>
+
     <form id="shortenForm">
         <input type="text" id="url" placeholder="Enter URL" required>
         <button type="submit">Shorten</button>
     </form>
-    <div id="result"></div>
+
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <!-- Hidden button until a URL is shortened -->
+    <div style="margin-top: 20px; text-align: center;">
+        <button id="resetBtn" style="display: none;">Shorten Another URL</button>
+    </div>
 
     <script>
         const form = document.getElementById('shortenForm');
         const input = document.getElementById('url');
         const result = document.getElementById('result');
+        const resetBtn = document.getElementById('resetBtn');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const response = await fetch('/shorten', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: input.value }),
             });
 
@@ -39,9 +45,18 @@
                     <p><strong>Short URL:</strong> <a href="${fullShortURL}" target="_blank">${fullShortURL}</a></p>
                     <p><strong>Analytics:</strong> <a href="${analyticsURL}" target="_blank">View Analytics</a></p>
                 `;
+                resetBtn.style.display = 'inline-block'; // Show the reset button
             } else {
                 result.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                resetBtn.style.display = 'inline-block';
             }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            input.value = '';
+            result.innerHTML = '';
+            resetBtn.style.display = 'none';
+            input.focus();
         });
     </script>
 </body>

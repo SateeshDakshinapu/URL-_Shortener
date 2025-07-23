@@ -1,16 +1,104 @@
+/* Global Reset & Font */
 body {
-    font-family: Arial, sans-serif;
-    margin: 2em;
-    background-color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f6f8fa;
+    color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    margin: 0;
+    padding: 40px;
 }
-h1, h2 {
-    color: #333;
+
+/* Heading */
+h1 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: #2c3e50;
 }
+
+/* Form Container */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Input */
 input[type="text"] {
-    padding: 0.5em;
-    width: 300px;
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    background-color: #eef5ff;
+    outline: none;
+    box-sizing: border-box;
 }
-button {
-    padding: 0.5em 1em;
-    margin-left: 1em;
+
+input[type="text"]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Submit Button */
+button[type="submit"] {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #2563eb;
+}
+
+/* Result Section */
+#result {
+    background-color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: left;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 10px;
+}
+
+/* Shorten Another Button */
+#resetBtn {
+    background-color: #6b7280;
+    color: white;
+    padding: 10px 20px;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.2s ease;
+    display: none;
+}
+
+#resetBtn:hover {
+    background-color: #4b5563;
+}
+
+/* Anchor Styling */
+a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
